@@ -42,6 +42,7 @@ class ResponseForm(models.ModelForm):
         """Expects a survey object to be passed in initially"""
         self.survey = kwargs.pop("survey")
         self.user = kwargs.pop("user")
+        self.django_session_key = kwargs.pop("django_session_key")
         try:
             self.step = int(kwargs.pop("step"))
         except KeyError:
@@ -114,10 +115,10 @@ class ResponseForm(models.ModelForm):
         else:
             try:
                 self.response = Response.objects.prefetch_related("user", "survey").get(
-                    user=self.user, survey=self.survey
+                    user=self.user, django_session_key=self.django_session_key, survey=self.survey
                 )
             except Response.DoesNotExist:
-                LOGGER.debug("No saved response for '%s' for user %s", self.survey, self.user)
+                LOGGER.debug("No saved response for '%s' for user %s and related session key", self.survey, self.user)
                 self.response = None
         return self.response
 
@@ -273,6 +274,7 @@ class ResponseForm(models.ModelForm):
         response.interview_uuid = self.uuid
         if self.user.is_authenticated:
             response.user = self.user
+        response.django_session_key = self.django_session_key
         response.save()
         # response "raw" data as dict (for signal)
         data = {"survey_id": response.survey.id, "interview_uuid": response.interview_uuid, "responses": []}

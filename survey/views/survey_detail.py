@@ -25,7 +25,11 @@ class SurveyDetail(View):
         if survey.need_logged_user and not request.user.is_authenticated:
             return redirect(f"{settings.LOGIN_URL}?next={request.path}")
 
-        form = ResponseForm(survey=survey, user=request.user, step=step)
+        if not request.session.exists(request.session.session_key):
+            request.session.create()
+        django_session_key = request.session.session_key
+
+        form = ResponseForm(survey=survey, user=request.user, django_session_key=django_session_key, step=step)
         categories = form.current_categories()
 
         asset_context = {
@@ -48,7 +52,11 @@ class SurveyDetail(View):
         if survey.need_logged_user and not request.user.is_authenticated:
             return redirect(f"{settings.LOGIN_URL}?next={request.path}")
 
-        form = ResponseForm(request.POST, survey=survey, user=request.user, step=kwargs.get("step", 0))
+        if not request.session.exists(request.session.session_key):
+            request.session.create()
+        django_session_key = request.session.session_key
+
+        form = ResponseForm(request.POST, survey=survey, user=request.user, django_session_key=django_session_key, step=kwargs.get("step", 0))
         categories = form.current_categories()
 
         if not survey.editable_answers and form.response is not None:
@@ -85,7 +93,10 @@ class SurveyDetail(View):
         else:
             # when it's the last step
             if not form.has_next_step():
-                save_form = ResponseForm(request.session[session_key], survey=survey, user=request.user)
+                if not request.session.exists(request.session.session_key):
+                    request.session.create()
+                django_session_key = request.session.session_key
+                save_form = ResponseForm(request.session[session_key], survey=survey, user=request.user, django_session_key=django_session_key)
                 if save_form.is_valid():
                     response = save_form.save()
                 else:
