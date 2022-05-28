@@ -9,7 +9,7 @@ from django.utils.text import slugify
 
 from survey.models import Answer, Category, Question, Response, Survey
 from survey.signals import survey_completed
-from survey.widgets import ImageSelectWidget
+from survey.widgets import ImageSelectWidget, RichLabelRadioSelect, RichLabelSelect, RichLabelCheckboxSelectMultiple
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,10 +28,10 @@ class ResponseForm(models.ModelForm):
     WIDGETS = {
         Question.TEXT: forms.Textarea,
         Question.SHORT_TEXT: forms.TextInput,
-        Question.RADIO: forms.RadioSelect,
-        Question.SELECT: forms.Select,
+        Question.RADIO: RichLabelRadioSelect,
+        Question.SELECT: RichLabelSelect,
         Question.SELECT_IMAGE: ImageSelectWidget,
-        Question.SELECT_MULTIPLE: forms.CheckboxSelectMultiple,
+        Question.SELECT_MULTIPLE: RichLabelCheckboxSelectMultiple,
     }
 
     class Meta:
